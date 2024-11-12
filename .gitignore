@@ -1,0 +1,62 @@
+# Python bytecode and cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment directories
+.env/
+.venv/
+env/
+venv/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Environment and dependency files
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Distribution / packaging files
+*.egg-info/
+.eggs/
+build/
+dist/
+*.whl
+
+# Test and coverage reports
+htmlcov/
+.tox/
+.coverage
+*.cover
+.hypothesis/
+.cache
+pytest_cache/
+.nox/
+
+# MyPy static type checking report
+.mypy_cache/
+
+# pyright static type checking report
+.pyright/
+
+# MacOS system files
+.DS_Store
+
+# IDE settings
+.vscode/
+.idea/
+
+# Log files
+*.log
+*.out
+*.err
+
+# Docker files
+docker-compose.override.yml
+.dockerignore
+
+# Ignore local settings
+local_settings.py
+
+/weights
