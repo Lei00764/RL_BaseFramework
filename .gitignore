@@ -59,4 +59,6 @@ docker-compose.override.yml
 # Ignore local settings
 local_settings.py
 
-/weights
+/dex_tensorboard
+*.zip
+*.txt

@@ -13,6 +13,8 @@ import numpy as np
 from gymnasium import spaces # 用于定义 action space and obs space
 from gymnasium.envs.mujoco import MujocoEnv
 
+from config import Config
+
 class DexEnvV1(MujocoEnv):
     """
     所有自定义环境类都要继承 gym.Env, 此处 EexEnvV1, 继承 MujocoEnv, 而 MujocoEnv 继承 gym.Env
@@ -21,14 +23,23 @@ class DexEnvV1(MujocoEnv):
     get_body_com 获取质心位置
     """
     metadata = {"render_modes": ["human", "rgb_array", "depth_array"], "render_fps": 100}
-    mj_xml_path = os.path.join(os.path.dirname(__file__), "..", "..", "dex_model", "mjmodel.xml")
 
     def __init__(self, model_path, frame_skip, render_mode):
-        # 定义 action space and obs space
-        self.obs_space = spaces.Box(low=0, high=1, shape=(25,), dtype=np.float64)
+        """
+        初始化环境
+        """
+        self.config = Config()
+        self.obs_space = spaces.Box(low=self.config.env.joint_pos_range[0], high=self.config.env.joint_pos_range[1], shape=(25,), dtype=np.float64)
         
         # frame_skip: Number of MuJoCo simulation steps per gym `step()`.
         MujocoEnv.__init__(self, model_path, frame_skip, self.obs_space, render_mode)
+
+        self.max_episode_steps = self.config.env.max_episode_steps
+        self.current_step = 0
+
+        np.random.seed(self.config.base.seed)
+
+        # 初始化目标位置（如果有需要）
 
         print("action_space:", self.action_space)
         print("obs_space:", self.obs_space)
@@ -40,9 +51,10 @@ class DexEnvV1(MujocoEnv):
         self.do_simulation(action, self.frame_skip)
         obs = self._get_obs()
         reward = self._compute_reward()
-        terminated = self._is_done()
+        terminated = self._is_terminated()
+        truncated = self.current_step >= self.max_episode_steps
         info = {}  # reward 
-        return obs, reward, terminated, False, info
+        return obs, reward, terminated, truncated, info
 
     def _get_obs(self):
         """
@@ -56,7 +68,7 @@ class DexEnvV1(MujocoEnv):
         """
         return 1
 
-    def _is_done(self):
+    def _is_terminated(self):
         """
         Check if the episode is done.
         """
@@ -67,7 +79,15 @@ class DexEnvV1(MujocoEnv):
         Reset the robot degrees of freedom (qpos and qvel).
         """
         # 定义初始状态：qpos and qvel
-        qpos = np.random.uniform(low=0, high=0.1, size=self.model.nq)
-        qvel = np.random.uniform(low=0, high=0.1, size=self.model.nv) 
+        qpos = np.random.uniform(low=self.config.env.joint_pos_range[0], high=self.config.env.joint_pos_range[1], size=self.model.nq)
+        qvel = np.random.uniform(low=self.config.env.joint_vel_range[0], high=self.config.env.joint_vel_range[1], size=self.model.nv)
+        print(qpos)
+        # 设置新的目标位置（如果有需要）
+
         self.set_state(qpos, qvel)
+        self.current_step = 0
+
         return self._get_obs()
+    
+    def viewer_setup(self):
+        pass
